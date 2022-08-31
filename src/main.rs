@@ -13,12 +13,12 @@ fn main(){
 
     println!("Press ENTER to start the game");
     loop {
-        keyword_event(read().unwrap());
+        keyboard_event(read().unwrap());
     }
 }
 
-// Read keyword event and execute a function if necessary
-fn keyword_event(read_event: Event){
+// Read keyboard event and execute a function if necessary
+fn keyboard_event(read_event: Event){
     match read_event {
         Event::Key(KeyEvent {
             code: KeyCode::Enter,
