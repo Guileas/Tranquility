@@ -1,8 +1,6 @@
 use rand::prelude::*;
 use crossterm::{event::{read, Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind, KeyEventState}};
 
-
-
 fn main(){
     println!("                                                                                               
     _|_|_|_|_|                                                    _|  _|  _|    _|                
@@ -56,7 +54,7 @@ pub fn setup() {
 
     // Create and Display the board game
     let raw_board = create_square_board();
-   
+    display_board_game(raw_board.as_slice());
 
     // Shuffle the stack and create the user hand
     let player_deck = shuffle(island_stack);
@@ -100,4 +98,25 @@ fn create_square_board() -> [[String; 8]; 8] {
         }   
     }
     return map;
+}
+
+// Display the board like so:
+//
+// [_] [1] [2] [3] [4] [5] [6] [x]
+// [1] [*] [*] [*] [*] [*] [*] [1]
+// [2] [*] [*] [*] [*] [*] [*] [2]
+// [3] [*] [*] [*] [*] [*] [*] [3]
+// [4] [*] [*] [*] [*] [*] [*] [4]
+// [5] [*] [*] [*] [*] [*] [*] [5]
+// [6] [*] [*] [*] [*] [*] [*] [6]
+// [s] [1] [2] [3] [4] [5] [6] [_]
+//
+// Using the raw board game created by the function "create_board()"
+fn display_board_game(board_array: &[[std::string::String; 8]]) {
+    for row_value in board_array.iter() {
+        for col_value in row_value.iter() {
+            print!("[{}] ", col_value);
+        }
+        println!();
+    }
 }
