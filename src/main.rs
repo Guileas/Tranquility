@@ -1,7 +1,8 @@
 use rand::prelude::*;
+use crossterm::{event::{read, Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind, KeyEventState}};
 
 
-fn main() {
+fn main(){
     println!("                                                                                               
     _|_|_|_|_|                                                    _|  _|  _|    _|                
         _|      _|  _|_|    _|_|_|  _|_|_|      _|_|_|  _|    _|      _|      _|_|_|_|  _|    _|  
@@ -10,7 +11,28 @@ fn main() {
         _|      _|          _|_|_|  _|    _|    _|_|_|    _|_|_|  _|  _|  _|      _|_|    _|_|_|  
                                                     _|                                        _|  
                                                     _|                                    _|_|    ");
-    setup();
+
+    println!("Press ENTER to start the game");
+    loop {
+        keyword_event(read().unwrap());
+    }
+
+    
+}
+
+// Read keyword event and execute a function if necessary
+fn keyword_event(read_event: Event){
+    match read_event {
+        Event::Key(KeyEvent {
+            code: KeyCode::Enter,
+            modifiers: KeyModifiers::NONE,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE
+        }) => {
+            setup();
+        }
+        _ => {}
+    }
 }
 
 // Shuffle card using the modern the Fisher-Yates algorithm
