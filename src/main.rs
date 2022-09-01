@@ -53,11 +53,34 @@ pub fn setup() {
     let island_stack: [i8; 85] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,100,100,100,100,100];
 
     // Create and Display the board game
-    let raw_board = create_square_board();
+    let raw_board: [[String; 8]; 8] = create_square_board();
     display_board_game(raw_board.as_slice());
 
-    // Shuffle the stack and create the user hand
-    let player_deck = shuffle(island_stack);
+    // Shuffle the stack 
+    let player_deck: [i8; 85] = shuffle(island_stack);
+    
+    game(player_deck, raw_board)
+}
+
+fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
+
+    // Create the user hand
+    let mut player_hand: Vec<i8> = Vec::new();
+    player_hand.extend_from_slice(&player_stack[..5]); 
+
+    // Get the player deck whithout his first hand
+    let player_deck: Vec<i8> = update_player_deck(player_stack.to_vec(), 5);
+
+    println!();
+    println!("Your hand is: ");
+    println!("{:?}", player_hand);
+
+}
+
+// Return the stack whitout the user hand
+fn update_player_deck(mut player_deck: Vec<i8>, first_card_to_keep: usize) -> Vec<i8>{ 
+    // Return only the card we keep and remove the others 
+    player_deck.drain(first_card_to_keep..).collect()
 }
 
 // Prepare the array use to construct the square board
