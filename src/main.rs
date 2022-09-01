@@ -12,14 +12,24 @@ fn main(){
                                                     _|                                    _|_|    ");
 
     println!("Press ENTER to start the game");
-    loop {
-        keyboard_event(read().unwrap());
-    }
+    keyboard_event(read().unwrap());
 }
 
 // Read keyboard event and execute a function if necessary
 fn keyboard_event(read_event: Event){
     match read_event {
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('a'),
+            modifiers: KeyModifiers::NONE,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE
+        }) => {}
+        Event::Key(KeyEvent {
+            code: KeyCode::Char('b'),
+            modifiers: KeyModifiers::NONE,
+            kind: KeyEventKind::Press,
+            state: KeyEventState::NONE
+        }) => {}
         Event::Key(KeyEvent {
             code: KeyCode::Enter,
             modifiers: KeyModifiers::NONE,
@@ -71,13 +81,28 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
     // Get the player deck whithout his first hand
     let mut player_deck: Vec<i8> = update_player_deck(player_stack.to_vec(), 5);
 
-    println!();
-    println!("Your hand is: ");
-    println!("{:?}", player_hand);
-
     //Insert the start card in the player_deck
     player_deck = insert_start_card(player_deck);
 
+    print_hand(player_hand);
+    print_choose_action();
+    
+    loop{}
+    
+}
+
+fn print_hand(hand: Vec<i8>){
+    println!();
+    println!("Your hand is: ");
+    println!("{:?}", hand);
+}
+
+fn print_choose_action(){
+    println!();
+    println!("What action would you like to do: ");
+    println!("[a] - Play a card");
+    println!("[b] - Drop 2 cards ");
+    keyboard_event(read().unwrap());
 }
 
 // Return the stack whitout the user hand
