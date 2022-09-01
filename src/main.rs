@@ -69,11 +69,14 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
     player_hand.extend_from_slice(&player_stack[..5]); 
 
     // Get the player deck whithout his first hand
-    let player_deck: Vec<i8> = update_player_deck(player_stack.to_vec(), 5);
+    let mut player_deck: Vec<i8> = update_player_deck(player_stack.to_vec(), 5);
 
     println!();
     println!("Your hand is: ");
     println!("{:?}", player_hand);
+
+    //Insert the start card in the player_deck
+    player_deck = insert_start_card(player_deck);
 
 }
 
@@ -81,6 +84,13 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
 fn update_player_deck(mut player_deck: Vec<i8>, first_card_to_keep: usize) -> Vec<i8>{ 
     // Return only the card we keep and remove the others 
     player_deck.drain(first_card_to_keep..).collect()
+}
+
+fn insert_start_card(mut player_deck: Vec<i8>) -> Vec<i8>{
+    // Define the random index we gonna insert the start card into
+    let rand_index = thread_rng().gen_range(0..player_deck.len()+1);
+    player_deck.insert(rand_index, 0);
+    return player_deck
 }
 
 // Prepare the array use to construct the square board
