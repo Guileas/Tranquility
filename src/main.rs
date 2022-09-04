@@ -1,5 +1,6 @@
 use rand::prelude::*;
 use crossterm::{event::{read, Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind, KeyEventState}};
+use std::io::{self, BufRead};
 
 fn main(){
     println!("                                                                                               
@@ -18,18 +19,6 @@ fn main(){
 // Read keyboard event and execute a function if necessary
 fn keyboard_event(read_event: Event){
     match read_event {
-        Event::Key(KeyEvent {
-            code: KeyCode::Char('a'),
-            modifiers: KeyModifiers::NONE,
-            kind: KeyEventKind::Press,
-            state: KeyEventState::NONE
-        }) => {}
-        Event::Key(KeyEvent {
-            code: KeyCode::Char('b'),
-            modifiers: KeyModifiers::NONE,
-            kind: KeyEventKind::Press,
-            state: KeyEventState::NONE
-        }) => {}
         Event::Key(KeyEvent {
             code: KeyCode::Enter,
             modifiers: KeyModifiers::NONE,
@@ -84,25 +73,65 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
     //Insert the start card in the player_deck
     player_deck = insert_start_card(player_deck);
 
-    print_hand(player_hand);
-    print_choose_action();
-    
+    print_hand(&player_hand);
+    let mut action: i8 = print_choose_action();
+
+    match action {
+        1 => { },
+        2 => { drop_two_card(player_hand, player_deck) }
+        _ => {}
+    }
     loop{}
     
 }
 
-fn print_hand(hand: Vec<i8>){
+fn drop_two_card(mut player_hand: Vec<i8>, pile: Vec<i8>) {
+    let mut first_number_selected = String::new();
+    let mut second_number_selected = String::new();
+
+    println!();
+    print_hand(&player_hand);
+    println!("Whitch card do you want to drop?");
+
+    println!("The first one:");
+    io::stdin().lock().read_line(&mut first_number_selected).unwrap();
+    let first_card: i8 = first_number_selected.trim().parse::<i8>().unwrap();
+    let player_hand = remove_card(player_hand, first_card);
+
+    println!();
+    print_hand(&player_hand);
+    println!("The second one:");
+    io::stdin().lock().read_line(&mut second_number_selected).unwrap();
+    let second_card: i8 = second_number_selected.trim().parse::<i8>().unwrap();
+    let player_hand = remove_card(player_hand, second_card);
+    
+    println!("{:?}", player_hand);
+}
+
+fn remove_card(mut player_hand: Vec<i8>, card_to_remove: i8)-> Vec<i8>{
+    if let Some(pos) = player_hand.iter().position(|&x| x == card_to_remove) {
+        player_hand.remove(pos);
+    }
+    player_hand
+}
+
+fn print_hand(hand: &Vec<i8>){
     println!();
     println!("Your hand is: ");
     println!("{:?}", hand);
 }
 
-fn print_choose_action(){
+fn print_choose_action() -> i8{
+
     println!();
     println!("What action would you like to do: ");
-    println!("[a] - Play a card");
-    println!("[b] - Drop 2 cards ");
-    keyboard_event(read().unwrap());
+    println!("[1] - Play a card");
+    println!("[2] - Drop 2 cards ");
+    
+    let mut action_selected:String = String::new();
+    io::stdin().lock().read_line(&mut action_selected).unwrap();
+    let action : i8 = action_selected.trim().parse::<i8>().unwrap();
+    action
 }
 
 // Return the stack whitout the user hand
