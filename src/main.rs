@@ -74,15 +74,49 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
     player_deck = insert_start_card(player_deck);
 
     print_hand(&player_hand);
-    let mut action: i8 = print_choose_action();
+    let action: i8 = print_choose_action();
 
     match action {
-        1 => { },
+        1 => { play_a_card(player_hand, player_deck, board_game_array)},
         2 => { drop_two_card(player_hand, player_deck) }
         _ => {}
     }
     loop{}
     
+}
+
+fn play_a_card(mut player_hand: Vec<i8>, pile: Vec<i8>, mut board_array: [[std::string::String; 8];8]) {
+    let mut card_selected = String::new();
+    let mut row_selected = String::new();
+    let mut column_selected = String::new();
+
+    println!();
+    print_hand(&player_hand);
+    println!("Whitch card do you want to play?");
+
+    io::stdin().lock().read_line(&mut card_selected).unwrap();
+    let card_to_be_placed: i8 = card_selected.trim().parse::<i8>().unwrap();
+
+    println!();
+    println!("Where do you want to place it?");
+
+    println!();
+    println!("Select a row (R) [1 - 6]");
+    io::stdin().lock().read_line(&mut row_selected).unwrap();
+    let row: usize = row_selected.trim().parse::<usize>().unwrap();
+
+    println!();
+    println!("Select a column (C) [1 - 6]");
+    io::stdin().lock().read_line(&mut column_selected).unwrap();
+    let column: usize = column_selected.trim().parse::<usize>().unwrap();
+
+    //Add the card in the  board array
+    board_array[row] [column] = "\x1b[36m".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
+
+    display_board_game(&board_array);
+    let player_hand = remove_card(player_hand, card_to_be_placed);
+
+    print_hand(&player_hand);
 }
 
 fn drop_two_card(mut player_hand: Vec<i8>, pile: Vec<i8>) {
