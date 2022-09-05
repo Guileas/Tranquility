@@ -49,7 +49,7 @@ pub fn shuffle(mut cards: [i8;85]) -> [i8;85] {
 }
 
 pub fn setup() {
-    let island_stack: [i8; 85] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,100,100,100,100,100];
+    let island_stack: [i8; 85] = [01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,100,100,100,100,100];
 
     // Create and Display the board game
     let raw_board: [[String; 8]; 8] = create_square_board();
@@ -157,31 +157,32 @@ fn create_square_board() -> [[String; 8]; 8] {
     for i in 0..max_square_size {
         for j in 0..max_square_size {
             // First row
-            if i == 0 && j == 0 { map[i][j] = "_".to_string(); }
+            if i == 0 && j == 0 { map[i][j] = "__".to_string(); }
             else if i == 0 && j != 0 && j != 7 {
-                map[i][j] = String::from(&j.to_string());
+                map[i][j] = "C".to_string() + &j.to_string();
             } 
-            else if i == 0 && j == 7 { map[i][j] = "x".to_string(); }
+            else if i == 0 && j == 7 { map[i][j] = "\x1b[92m<>\x1b[0m".to_string(); }
 
             // First column
             else if j == 0 && i != 0 && i != 7 { 
-                map[i][j] = String::from(&i.to_string());
+
+                map[i][j] = "R".to_string() + &i.to_string();
             }
 
             // Last column
             else if j == 7 && i != 0 && i != 7 { 
-                map[i][j] = String::from(&i.to_string());
+                map[i][j] = "R".to_string() + &i.to_string();
             }
 
             // Last row
-            else if i == 7 && j == 0 { map[i][j] = "s".to_string(); }
+            else if i == 7 && j == 0 { map[i][j] = "\x1b[92m<>\x1b[0m".to_string(); }
             else if i == 7 && j != 0 && j != 7 {
-                map[i][j] = String::from(&j.to_string());
+                map[i][j] = "C".to_string() + &j.to_string();
             } 
-            else if i == 7 && j == 7 { map[i][j] = "_".to_string(); }
+            else if i == 7 && j == 7 { map[i][j] = "__".to_string(); }
 
             // Board
-            else { map[i][j] = "\x1b[93m*\x1b[0m".to_string(); }
+            else { map[i][j] = "\x1b[93m**\x1b[0m".to_string(); }
         }   
     }
     return map;
