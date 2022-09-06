@@ -85,6 +85,20 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
     
 }
 
+// This function return two element: [player_hand, pile]
+// - player_hand = player hand refill with new card
+// - pile = the user pile but without the card used to refill the player hand
+fn refill_hand(mut player_hand: Vec<i8>, mut pile: Vec<i8>) -> [Vec<i8>;2] {
+    //Calculate how much card needs to be added to the current user hand
+    let number_of_card_to_refill = 5 - player_hand.len();
+    // Get from the pile the number of card needed
+    player_hand.extend_from_slice(&pile[..number_of_card_to_refill]); 
+    //Remove from the pile the card push in the user hand
+    pile = update_player_deck(pile, number_of_card_to_refill);
+    let updated_array: [Vec<i8>;2] = [player_hand, pile];
+    updated_array
+}
+
 fn play_a_card(mut player_hand: Vec<i8>, pile: Vec<i8>, mut board_array: [[std::string::String; 8];8]) {
     let mut card_selected = String::new();
     let mut row_selected = String::new();
@@ -114,9 +128,10 @@ fn play_a_card(mut player_hand: Vec<i8>, pile: Vec<i8>, mut board_array: [[std::
     board_array[row] [column] = "\x1b[36m".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
 
     display_board_game(&board_array);
-    let player_hand = remove_card(player_hand, card_to_be_placed);
+    player_hand = remove_card(player_hand, card_to_be_placed);
 
-    print_hand(&player_hand);
+    let info = refill_hand(player_hand, pile);
+    print_hand(&info[0]);
 }
 
 fn drop_two_card(mut player_hand: Vec<i8>, pile: Vec<i8>) {
@@ -139,7 +154,8 @@ fn drop_two_card(mut player_hand: Vec<i8>, pile: Vec<i8>) {
     let second_card: i8 = second_number_selected.trim().parse::<i8>().unwrap();
     let player_hand = remove_card(player_hand, second_card);
     
-    println!("{:?}", player_hand);
+    let refill_info = refill_hand(player_hand, pile);
+    print_hand(&refill_info[0]);
 }
 
 fn remove_card(mut player_hand: Vec<i8>, card_to_remove: i8)-> Vec<i8>{
