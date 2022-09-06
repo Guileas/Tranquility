@@ -58,27 +58,26 @@ pub fn setup() {
     // Shuffle the stack 
     let player_deck: [i8; 85] = shuffle(island_stack);
     
-    game(player_deck, raw_board)
-}
-
-fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
-
     // Create the user hand
     let mut player_hand: Vec<i8> = Vec::new();
-    player_hand.extend_from_slice(&player_stack[..5]); 
+    player_hand.extend_from_slice(&player_deck[..5]); 
 
     // Get the player deck whithout his first hand
-    let mut player_deck: Vec<i8> = update_player_deck(player_stack.to_vec(), 5);
+    let mut player_deck: Vec<i8> = update_player_deck(player_deck.to_vec(), 5);
 
     //Insert the start card in the player_deck
     player_deck = insert_start_card(player_deck);
 
     print_hand(&player_hand);
-    let action: i8 = print_choose_action();
 
+    game(player_hand, player_deck, raw_board)
+}
+
+fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 8]; 8]) {
+    let action: i8 = print_choose_action();
     match action {
         1 => { play_a_card(player_hand, player_deck, board_game_array)},
-        2 => { drop_two_card(player_hand, player_deck) }
+        2 => { drop_two_card(player_hand, player_deck, board_game_array) }
         _ => {}
     }
     loop{}
@@ -88,18 +87,19 @@ fn game(player_stack: [i8; 85], board_game_array: [[String; 8]; 8]) {
 // This function return two element: [player_hand, pile]
 // - player_hand = player hand refill with new card
 // - pile = the user pile but without the card used to refill the player hand
-fn refill_hand(mut player_hand: Vec<i8>, mut pile: Vec<i8>) -> [Vec<i8>;2] {
-    //Calculate how much card needs to be added to the current user hand
-    let number_of_card_to_refill = 5 - player_hand.len();
+fn refill_hand(mut player_hand: Vec<i8>, pile: &Vec<i8>, number_of_card_to_refill: usize,) -> Vec<i8> {
     // Get from the pile the number of card needed
     player_hand.extend_from_slice(&pile[..number_of_card_to_refill]); 
-    //Remove from the pile the card push in the user hand
-    pile = update_player_deck(pile, number_of_card_to_refill);
-    let updated_array: [Vec<i8>;2] = [player_hand, pile];
-    updated_array
+    player_hand
 }
 
-fn play_a_card(mut player_hand: Vec<i8>, pile: Vec<i8>, mut board_array: [[std::string::String; 8];8]) {
+fn calculate_number_of_card_to_refill(player_hand: &Vec<i8>) -> usize {
+    //Calculate how much card needs to be added to the current user hand
+    let number_of_card_to_refill = 5 - player_hand.len();
+    number_of_card_to_refill
+}
+
+fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, mut board_array: [[std::string::String; 8];8]) {
     let mut card_selected = String::new();
     let mut row_selected = String::new();
     let mut column_selected = String::new();
@@ -130,11 +130,18 @@ fn play_a_card(mut player_hand: Vec<i8>, pile: Vec<i8>, mut board_array: [[std::
     display_board_game(&board_array);
     player_hand = remove_card(player_hand, card_to_be_placed);
 
-    let info = refill_hand(player_hand, pile);
-    print_hand(&info[0]);
+    //Calcul how many card are missing from the player hand
+    let card_to_refill: usize = calculate_number_of_card_to_refill(&player_hand);
+    // Add the missing card to the player hand
+    player_hand = refill_hand(player_hand.clone(), &pile, card_to_refill);
+    // Remove the card add to the hand from the pile
+    pile = update_player_deck(pile, card_to_refill);
+    print_hand(&player_hand);
+
+    game(player_hand, pile, board_array);
 }
 
-fn drop_two_card(mut player_hand: Vec<i8>, pile: Vec<i8>) {
+fn drop_two_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8]) {
     let mut first_number_selected = String::new();
     let mut second_number_selected = String::new();
 
@@ -145,17 +152,24 @@ fn drop_two_card(mut player_hand: Vec<i8>, pile: Vec<i8>) {
     println!("The first one:");
     io::stdin().lock().read_line(&mut first_number_selected).unwrap();
     let first_card: i8 = first_number_selected.trim().parse::<i8>().unwrap();
-    let player_hand = remove_card(player_hand, first_card);
+    player_hand = remove_card(player_hand, first_card);
 
     println!();
     print_hand(&player_hand);
     println!("The second one:");
     io::stdin().lock().read_line(&mut second_number_selected).unwrap();
     let second_card: i8 = second_number_selected.trim().parse::<i8>().unwrap();
-    let player_hand = remove_card(player_hand, second_card);
+    player_hand = remove_card(player_hand, second_card);
     
-    let refill_info = refill_hand(player_hand, pile);
-    print_hand(&refill_info[0]);
+    //Calcul how many card are missing from the player hand
+    let card_to_refill: usize = calculate_number_of_card_to_refill(&player_hand);
+    // Add the missing card to the player hand
+    player_hand = refill_hand(player_hand, &pile, card_to_refill);
+    // Remove the card add to the hand from the pile
+    pile = update_player_deck(pile, card_to_refill);
+    print_hand(&player_hand);
+
+    game(player_hand, pile, board_array);
 }
 
 fn remove_card(mut player_hand: Vec<i8>, card_to_remove: i8)-> Vec<i8>{
