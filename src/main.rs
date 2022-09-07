@@ -75,6 +75,7 @@ pub fn setup() {
 
 fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 8]; 8]) {
     let action: i8 = print_choose_action();
+    display_board_game(&board_game_array);
     match action {
         1 => { play_a_card(player_hand, player_deck, board_game_array)},
         2 => { drop_two_card(player_hand, player_deck, board_game_array) }
@@ -125,7 +126,11 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, mut board_array: [[s
     let column: usize = column_selected.trim().parse::<usize>().unwrap();
 
     //Add the card in the  board array
-    board_array[row] [column] = "\x1b[36m".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
+    if card_to_be_placed < 10 {
+        board_array[row] [column] = "\x1b[36m0".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
+    }else{
+        board_array[row] [column] = "\x1b[36m".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
+    }
 
     display_board_game(&board_array);
     player_hand = remove_card(player_hand, card_to_be_placed);
