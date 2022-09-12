@@ -49,11 +49,12 @@ pub fn shuffle(mut cards: [i8;85]) -> [i8;85] {
 }
 
 pub fn setup() {
+    let grid_board: [[Option<i8>; 6]; 6] = [[None,None,None,None, None, Some(6)],[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None]];
     let island_stack: [i8; 85] = [01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,100,100,100,100,100];
 
     // Create and Display the board game
     let raw_board: [[String; 8]; 8] = create_square_board();
-    display_board_game(raw_board.as_slice());
+    display_board_game(raw_board.as_slice(), &grid_board);
 
     // Shuffle the stack 
     let player_deck: [i8; 85] = shuffle(island_stack);
@@ -70,15 +71,14 @@ pub fn setup() {
 
     print_hand(&player_hand);
 
-    game(player_hand, player_deck, raw_board)
+    game(player_hand, player_deck, raw_board, grid_board)
 }
 
-fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 8]; 8]) {
+fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 8]; 8], player_grid: [[Option<i8>; 6]; 6]) {
     let action: i8 = print_choose_action();
-    display_board_game(&board_game_array);
     match action {
-        1 => { play_a_card(player_hand, player_deck, board_game_array)},
-        2 => { drop_two_card(player_hand, player_deck, board_game_array) }
+        1 => { play_a_card(player_hand, player_deck, board_game_array, player_grid)},
+        2 => { drop_two_card(player_hand, player_deck, board_game_array, player_grid) }
         _ => {}
     }
     loop{}
@@ -100,7 +100,7 @@ fn calculate_number_of_card_to_refill(player_hand: &Vec<i8>) -> usize {
     number_of_card_to_refill
 }
 
-fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, mut board_array: [[std::string::String; 8];8]) {
+fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8], mut player_grid: [[Option<i8>; 6]; 6]) {
     let mut card_selected = String::new();
     let mut row_selected = String::new();
     let mut column_selected = String::new();
@@ -125,14 +125,11 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, mut board_array: [[s
     io::stdin().lock().read_line(&mut column_selected).unwrap();
     let column: usize = column_selected.trim().parse::<usize>().unwrap();
 
-    //Add the card in the  board array
-    if card_to_be_placed < 10 {
-        board_array[row] [column] = "\x1b[36m0".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
-    }else{
-        board_array[row] [column] = "\x1b[36m".to_string() + &card_to_be_placed.to_string() + "\x1b[0m";
-    }
+    //Add the card in the board array
+    // The -1 is beacause the first col and row are used to display the board info to the player
+    player_grid[row-1][column-1] = Some(card_to_be_placed);
 
-    display_board_game(&board_array);
+    display_board_game(&board_array, &player_grid);
     player_hand = remove_card(player_hand, card_to_be_placed);
 
     //Calcul how many card are missing from the player hand
@@ -143,10 +140,10 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, mut board_array: [[s
     pile = update_player_deck(pile, card_to_refill);
     print_hand(&player_hand);
 
-    game(player_hand, pile, board_array);
+    game(player_hand, pile, board_array, player_grid);
 }
 
-fn drop_two_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8]) {
+fn drop_two_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8], player_grid: [[Option<i8>; 6]; 6]) {
     let mut first_number_selected = String::new();
     let mut second_number_selected = String::new();
 
@@ -174,7 +171,8 @@ fn drop_two_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std
     pile = update_player_deck(pile, card_to_refill);
     print_hand(&player_hand);
 
-    game(player_hand, pile, board_array);
+    display_board_game(&board_array, &player_grid);
+    game(player_hand, pile, board_array, player_grid);
 }
 
 fn remove_card(mut player_hand: Vec<i8>, card_to_remove: i8)-> Vec<i8>{
@@ -259,20 +257,36 @@ fn create_square_board() -> [[String; 8]; 8] {
 
 // Display the board like so:
 //
-// [_] [1] [2] [3] [4] [5] [6] [x]
-// [1] [*] [*] [*] [*] [*] [*] [1]
-// [2] [*] [*] [*] [*] [*] [*] [2]
-// [3] [*] [*] [*] [*] [*] [*] [3]
-// [4] [*] [*] [*] [*] [*] [*] [4]
-// [5] [*] [*] [*] [*] [*] [*] [5]
-// [6] [*] [*] [*] [*] [*] [*] [6]
-// [s] [1] [2] [3] [4] [5] [6] [_]
+// [__] [C1] [C2] [C3] [C4] [C5] [C6] [<>] 
+// [R1] [**] [**] [**] [**] [**] [06] [R1] 
+// [R2] [**] [**] [**] [**] [**] [**] [R2] 
+// [R3] [**] [**] [**] [**] [**] [**] [R3] 
+// [R4] [**] [**] [**] [**] [**] [**] [R4] 
+// [R5] [**] [**] [**] [**] [**] [**] [R5] 
+// [R6] [**] [**] [**] [**] [**] [**] [R6] 
+// [<>] [C1] [C2] [C3] [C4] [C5] [C6] [__] 
 //
-// Using the raw board game created by the function "create_board()"
-fn display_board_game(board_array: &[[std::string::String; 8]]) {
-    for row_value in board_array.iter() {
-        for col_value in row_value.iter() {
-            print!("[{}] ", col_value);
+// Using the raw board game and the playable grid 
+fn display_board_game(board_array: &[[std::string::String; 8]], player_grid: &[[Option<i8>; 6]; 6]) {  
+    println!(); 
+    for (row_index, row_value) in board_array.iter().enumerate() {
+        for (col_index, col_value) in row_value.iter().enumerate() {
+            if 0 < row_index && row_index < 7 && 0 < col_index && col_index < 7 {
+                match player_grid[row_index-1][col_index-1]{
+                    None => {
+                        print!("[{}] ", col_value);
+                    }
+                    Some(value) => {
+                        if value < 10 {
+                            print!("[\x1b[36m0{}\x1b[0m] ", value);
+                        }else{
+                            print!("[\x1b[36m{}\x1b[0m] ", value);
+                        }
+                    }
+                }
+            }else{
+                print!("[{}] ", col_value);
+            }
         }
         println!();
     }
