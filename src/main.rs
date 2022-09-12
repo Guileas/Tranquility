@@ -1,6 +1,14 @@
-use rand::prelude::*;
 use crossterm::{event::{read, Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind, KeyEventState}};
 use std::io::{self, BufRead};
+
+
+
+use utils::{
+    board::Board,
+    shuffle::Shuffle,
+    cards::Cards
+};
+mod utils;
 
 fn main(){
     println!("                                                                                               
@@ -31,43 +39,26 @@ fn keyboard_event(read_event: Event){
     }
 }
 
-// Shuffle card using the modern the Fisher-Yates algorithm
-// https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
-pub fn shuffle(mut cards: [i8;85]) -> [i8;85] {
-    // Define the last index of the card array
-    let mut last_index = cards.len() - 1;
-    while last_index > 0 {
-        // Generate a random index in between 0 and the last index to choose a random number in the card array
-        let rand_index = thread_rng().gen_range(0..last_index);
-        // Swap the number in the last index with the random number selected by the rand_index var
-        cards.swap(last_index, rand_index);
-        //Decrement the last index so the right part will be the shuffled part and the left part the numbers that stills need to be shuffle
-        last_index -= 1;
-    }
-
-    return cards;
-}
-
 pub fn setup() {
     let grid_board: [[Option<i8>; 6]; 6] = [[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None],[None,None,None,None, None, None]];
     let island_stack: [i8; 85] = [01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,100,100,100,100,100];
 
     // Create and Display the board game
-    let raw_board: [[String; 8]; 8] = create_square_board();
+    let raw_board: [[String; 8]; 8] = Board::create_square_board();
     display_board_game(raw_board.as_slice(), &grid_board);
 
     // Shuffle the stack 
-    let player_deck: [i8; 85] = shuffle(island_stack);
+    let player_deck: [i8; 85] = Shuffle::shuffle(island_stack);
     
     // Create the user hand
     let mut player_hand: Vec<i8> = Vec::new();
     player_hand.extend_from_slice(&player_deck[..5]); 
 
     // Get the player deck whithout his first hand
-    let mut player_deck: Vec<i8> = update_player_deck(player_deck.to_vec(), 5);
+    let mut player_deck: Vec<i8> = Cards::update_player_deck(player_deck.to_vec(), 5);
 
     //Insert the start card in the player_deck
-    player_deck = insert_start_card(player_deck);
+    player_deck = Cards::insert_start_card(player_deck);
 
     print_hand(&player_hand);
 
@@ -83,21 +74,6 @@ fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 
     }
     loop{}
     
-}
-
-// This function return two element: [player_hand, pile]
-// - player_hand = player hand refill with new card
-// - pile = the user pile but without the card used to refill the player hand
-fn refill_hand(mut player_hand: Vec<i8>, pile: &Vec<i8>, number_of_card_to_refill: usize,) -> Vec<i8> {
-    // Get from the pile the number of card needed
-    player_hand.extend_from_slice(&pile[..number_of_card_to_refill]); 
-    player_hand
-}
-
-fn calculate_number_of_card_to_refill(player_hand: &Vec<i8>) -> usize {
-    //Calculate how much card needs to be added to the current user hand
-    let number_of_card_to_refill = 5 - player_hand.len();
-    number_of_card_to_refill
 }
 
 fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8], mut player_grid: [[Option<i8>; 6]; 6]) {
@@ -130,14 +106,17 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::
     player_grid[row-1][column-1] = Some(card_to_be_placed);
 
     display_board_game(&board_array, &player_grid);
-    player_hand = remove_card(player_hand, card_to_be_placed);
+    player_hand = Cards::remove_card(player_hand, card_to_be_placed);
+
+    // Calcul the number of card to drop after the card the user played
+    Cards::calculate_number_of_card_to_drop(&player_grid);
 
     //Calcul how many card are missing from the player hand
-    let card_to_refill: usize = calculate_number_of_card_to_refill(&player_hand);
+    let card_to_refill: usize = Cards::calculate_number_of_card_to_refill(&player_hand);
     // Add the missing card to the player hand
-    player_hand = refill_hand(player_hand.clone(), &pile, card_to_refill);
+    player_hand = Cards::refill_hand(player_hand.clone(), &pile, card_to_refill);
     // Remove the card add to the hand from the pile
-    pile = update_player_deck(pile, card_to_refill);
+    pile = Cards::update_player_deck(pile, card_to_refill);
     print_hand(&player_hand);
 
     game(player_hand, pile, board_array, player_grid);
@@ -154,32 +133,25 @@ fn drop_two_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std
     println!("The first one:");
     io::stdin().lock().read_line(&mut first_number_selected).unwrap();
     let first_card: i8 = first_number_selected.trim().parse::<i8>().unwrap();
-    player_hand = remove_card(player_hand, first_card);
+    player_hand = Cards::remove_card(player_hand, first_card);
 
     println!();
     print_hand(&player_hand);
     println!("The second one:");
     io::stdin().lock().read_line(&mut second_number_selected).unwrap();
     let second_card: i8 = second_number_selected.trim().parse::<i8>().unwrap();
-    player_hand = remove_card(player_hand, second_card);
+    player_hand = Cards::remove_card(player_hand, second_card);
     
     //Calcul how many card are missing from the player hand
-    let card_to_refill: usize = calculate_number_of_card_to_refill(&player_hand);
+    let card_to_refill: usize = Cards::calculate_number_of_card_to_refill(&player_hand);
     // Add the missing card to the player hand
-    player_hand = refill_hand(player_hand, &pile, card_to_refill);
+    player_hand = Cards::refill_hand(player_hand, &pile, card_to_refill);
     // Remove the card add to the hand from the pile
-    pile = update_player_deck(pile, card_to_refill);
+    pile = Cards::update_player_deck(pile, card_to_refill);
     print_hand(&player_hand);
 
     display_board_game(&board_array, &player_grid);
     game(player_hand, pile, board_array, player_grid);
-}
-
-fn remove_card(mut player_hand: Vec<i8>, card_to_remove: i8)-> Vec<i8>{
-    if let Some(pos) = player_hand.iter().position(|&x| x == card_to_remove) {
-        player_hand.remove(pos);
-    }
-    player_hand
 }
 
 fn print_hand(hand: &Vec<i8>){
@@ -199,60 +171,6 @@ fn print_choose_action() -> i8{
     io::stdin().lock().read_line(&mut action_selected).unwrap();
     let action : i8 = action_selected.trim().parse::<i8>().unwrap();
     action
-}
-
-// Return the stack whitout the user hand
-fn update_player_deck(mut player_deck: Vec<i8>, first_card_to_keep: usize) -> Vec<i8>{ 
-    // Return only the card we keep and remove the others 
-    player_deck.drain(first_card_to_keep..).collect()
-}
-
-fn insert_start_card(mut player_deck: Vec<i8>) -> Vec<i8>{
-    // Define the random index we gonna insert the start card into
-    let rand_index = thread_rng().gen_range(0..player_deck.len()+1);
-    player_deck.insert(rand_index, 0);
-    return player_deck
-}
-
-// Prepare the array use to construct the square board
-fn create_square_board() -> [[String; 8]; 8] {
-    
-    // The first map is a square of 8x8
-    let max_square_size = 8;
-    let mut map: [[String; 8]; 8] =  Default::default();
-
-    for i in 0..max_square_size {
-        for j in 0..max_square_size {
-            // First row
-            if i == 0 && j == 0 { map[i][j] = "__".to_string(); }
-            else if i == 0 && j != 0 && j != 7 {
-                map[i][j] = "C".to_string() + &j.to_string();
-            } 
-            else if i == 0 && j == 7 { map[i][j] = "\x1b[92m<>\x1b[0m".to_string(); }
-
-            // First column
-            else if j == 0 && i != 0 && i != 7 { 
-
-                map[i][j] = "R".to_string() + &i.to_string();
-            }
-
-            // Last column
-            else if j == 7 && i != 0 && i != 7 { 
-                map[i][j] = "R".to_string() + &i.to_string();
-            }
-
-            // Last row
-            else if i == 7 && j == 0 { map[i][j] = "\x1b[92m<>\x1b[0m".to_string(); }
-            else if i == 7 && j != 0 && j != 7 {
-                map[i][j] = "C".to_string() + &j.to_string();
-            } 
-            else if i == 7 && j == 7 { map[i][j] = "__".to_string(); }
-
-            // Board
-            else { map[i][j] = "\x1b[93m**\x1b[0m".to_string(); }
-        }   
-    }
-    return map;
 }
 
 // Display the board like so:
