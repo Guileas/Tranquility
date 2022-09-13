@@ -75,7 +75,7 @@ fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 
 
 fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8], mut player_grid: [[Option<i8>; 6]; 6]) {
     let mut card_selected = String::new();
-    let mut row_selected = String::new();
+    
     let mut column_selected = String::new();
 
     println!();
@@ -88,10 +88,13 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::
     println!();
     println!("Where do you want to place it?");
 
-    println!();
-    println!("Select a row (R) [1 - 6]");
-    io::stdin().lock().read_line(&mut row_selected).unwrap();
-    let row: usize = row_selected.trim().parse::<usize>().unwrap();
+    let mut row = print_row();
+
+    // If not between 
+    while row == 0 || row < 1 || row > 6 {
+        row = print_row();
+        println!("{}", row);
+    }
 
     println!();
     println!("Select a column (C) [1 - 6]");
@@ -118,6 +121,14 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::
     print_hand(&player_hand);
 
     game(player_hand, pile, board_array, player_grid);
+}
+
+fn print_row() -> usize {
+    let mut row_selected = String::new();
+    println!();
+    println!("Select a row (R) [1 - 6]");
+    io::stdin().lock().read_line(&mut row_selected).unwrap();
+    return row_selected.trim().parse::<usize>().unwrap_or(0);
 }
 
 fn drop_two_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8], player_grid: [[Option<i8>; 6]; 6]) {
