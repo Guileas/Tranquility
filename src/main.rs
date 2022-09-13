@@ -1,8 +1,6 @@
 use crossterm::{event::{read, Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind, KeyEventState}};
 use std::io::{self, BufRead};
 
-
-
 use utils::{
     board::Board,
     shuffle::Shuffle,
@@ -73,7 +71,6 @@ fn game(player_hand: Vec<i8>, player_deck: Vec<i8>, board_game_array: [[String; 
         _ => {}
     }
     loop{}
-    
 }
 
 fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::string::String; 8];8], mut player_grid: [[Option<i8>; 6]; 6]) {
@@ -101,7 +98,7 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::
     io::stdin().lock().read_line(&mut column_selected).unwrap();
     let column: usize = column_selected.trim().parse::<usize>().unwrap();
 
-    //Add the card in the board array
+    // Add the card in the board array
     // The -1 is beacause the first col and row are used to display the board info to the player
     player_grid[row-1][column-1] = Some(card_to_be_placed);
 
@@ -109,7 +106,8 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::
     player_hand = Cards::remove_card(player_hand, card_to_be_placed);
 
     // Calcul the number of card to drop after the card the user played
-    Cards::calculate_number_of_card_to_drop(&player_grid);
+    // The -1 is beacause the first col and row are used to display the board info to the player
+    Cards::calculate_number_of_card_to_drop(&player_grid, row-1, column-1);
 
     //Calcul how many card are missing from the player hand
     let card_to_refill: usize = Cards::calculate_number_of_card_to_refill(&player_hand);
