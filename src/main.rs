@@ -99,14 +99,14 @@ fn play_a_card(mut player_hand: Vec<i8>, mut pile: Vec<i8>, board_array: [[std::
     let column: usize = column_selected.trim().parse::<usize>().unwrap();
 
     // Add the card in the board array
-    // The -1 is beacause the first col and row are used to display the board info to the player
+    // The -1 is because the col and row array start at 0 but we ask the player to type between 1 to 6 to make things more user friendly
     player_grid[row-1][column-1] = Some(card_to_be_placed);
 
     display_board_game(&board_array, &player_grid);
     player_hand = Cards::remove_card(player_hand, card_to_be_placed);
 
     // Calcul the number of card to drop after the card the user played
-    // The -1 is beacause the first col and row are used to display the board info to the player
+    // The -1 is because the col and row array start at 0 but we ask the player to type between 1 to 6 to make things more userfriendly
     Cards::calculate_number_of_card_to_drop(&player_grid, row-1, column-1);
 
     //Calcul how many card are missing from the player hand
